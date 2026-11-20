@@ -1,0 +1,95 @@
+{% extends "salon/base.html" %}
+{% block title %}Pay - Glow Salon{% endblock %}
+{% block content %}
+<section class="container narrow">
+  <h2>Pay with M-Pesa</h2>
+
+  <div class="card summary">
+    <p><strong>{{ booking.customer_name }}</strong></p>
+    <p>{{ booking.service.name }} &middot; {{ booking.date }} at {{ booking.time|time:"H:i" }}</p>
+    <p class="price">Pay KES {{ booking.service.price }} to {{ payee_name }}</p>
+    <p>Status: <span id="booking-status" class="badge {{ booking.status }}">{{ booking.get_status_display }}</span></p>
+  </div>
+
+  {% if booking.status != "paid" %}
+  <div id="pay-box" class="form">
+    <div class="field">
+      <label for="phone">M-Pesa phone number</label>
+      <input id="phone" type="tel" value="{{ booking.phone }}" placeholder="0712345678">
+    </div>
+    <button id="pay-btn" class="btn" type="button">Pay KES {{ booking.service.price }} to {{ payee_name }}</button>
+    {% if demo_mode %}
+      <p class="note">Demo mode: no Daraja keys are set, so no real prompt is sent.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <p id="message" class="message" {% if booking.status == "paid" %}style="display:block"{% endif %}>
+    {% if booking.status == "paid" %}Payment of KES {{ booking.service.price }} to {{ payee_name }} received. See you at the salon!{% endif %}
+  </p>
+  <button id="demo-btn" class="btn secondary" type="button" style="display:none">Simulate entering PIN (demo)</button>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bookingId = {{ booking.id }};
+const demoMode = {{ demo_mode|yesno:"true,false" }};
+const msg = document.getElementById("message");
+const payBtn = document.getElementById("pay-btn");
+const demoBtn = document.getElementById("demo-btn");
+let paymentId = null, timer = null;
+
+function csrf() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : "";
+}
+function show(text, cls) { msg.textContent = text; msg.className = "message " + (cls || ""); msg.style.display = "block"; }
+
+async function api(url, method, body) {
+  const res = await fetch(url, {
+    method,
+    headers: {"Content-Type": "application/json", "X-CSRFToken": csrf()},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return {ok: res.ok, data: await res.json()};
+}
+
+function paid() {
+  clearInterval(timer);
+  document.getElementById("booking-status").textContent = "Paid";
+  document.getElementById("booking-status").className = "badge paid";
+  const box = document.getElementById("pay-box"); if (box) box.style.display = "none";
+  demoBtn.style.display = "none";
+}
+
+async function poll() {
+  const {data} = await api(`/api/payments/${paymentId}/`, "GET");
+  if (data.status === "success") {
+    paid(); show(`You paid KES ${data.amount} to {{ payee_name|escapejs }} (receipt ${data.mpesa_receipt}). See you at the salon!`, "ok");
+  } else if (data.status === "failed") {
+    clearInterval(timer); payBtn.disabled = false; demoBtn.style.display = "none";
+    show("Payment failed or was cancelled: " + data.result_desc + ". You can try again.", "err");
+  }
+}
+
+payBtn && payBtn.addEventListener("click", async () => {
+  payBtn.disabled = true;
+  show("Sending prompt...");
+  const {ok, data} = await api("/api/mpesa/stk-push/", "POST", {
+    booking_id: bookingId,
+    phone: document.getElementById("phone").value,
+  });
+  if (!ok) { payBtn.disabled = false; show(data.detail || "Could not send prompt.", "err"); return; }
+  paymentId = data.payment_id;
+  show(data.message + " ...waiting for confirmation", "info");
+  if (demoMode) demoBtn.style.display = "inline-block";
+  timer = setInterval(poll, 3000);
+});
+
+demoBtn.addEventListener("click", async () => {
+  await api(`/api/payments/${paymentId}/demo-confirm/`, "POST");
+  poll();
+});
+</script>
+{% endblock %}

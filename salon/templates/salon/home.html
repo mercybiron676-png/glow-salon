@@ -1,0 +1,30 @@
+{% extends "salon/base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Look good. Feel amazing.</h1>
+  <p>Book your appointment online and pay securely with M-Pesa.</p>
+  <a class="btn" href="{% url 'book' %}">Book an appointment</a>
+</section>
+
+<section class="container">
+  <h2>Popular services</h2>
+  <div class="grid">
+    {% for s in services %}
+      <article class="card">
+        {% if s.image_src %}
+          <img class="thumb" src="{{ s.image_src }}" alt="{{ s.name }}" loading="lazy">
+        {% else %}
+          <div class="thumb placeholder">{{ s.name|slice:":1" }}</div>
+        {% endif %}
+        <h3>{{ s.name }}</h3>
+        <p>{{ s.description }}</p>
+        <p class="price">KES {{ s.price }} <small>&middot; {{ s.duration_minutes }} min</small></p>
+        <a class="btn small" href="{% url 'book' %}?service={{ s.id }}">Book</a>
+      </article>
+    {% empty %}
+      <p>No services yet. Run <code>python manage.py seed_services</code>.</p>
+    {% endfor %}
+  </div>
+  <p class="center"><a href="{% url 'services' %}">See all services &rarr;</a></p>
+</section>
+{% endblock %}
