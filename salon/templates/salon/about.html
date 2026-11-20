@@ -1,0 +1,30 @@
+{% extends "salon/base.html" %}
+{% block title %}About - Glow Salon{% endblock %}
+{% block content %}
+<section class="container narrow">
+  <h2>About Glow Salon</h2>
+  <div class="card">
+    <p>Glow Salon is a beauty and hair salon in Kisii, owned and run by <strong>Mercy Kerubo</strong>.
+       We help every client leave feeling confident, with neat braids, healthy hair care,
+       and relaxing beauty treatments.</p>
+    <p>You can see our styles and prices on the Services page, book your slot online,
+       and pay safely with M-Pesa.</p>
+
+    <h3>Why choose us</h3>
+    <ul>
+      <li>Wide range of hairstyles: braids, twists, weaves, locs and more</li>
+      <li>Clear prices, with no surprises</li>
+      <li>Book online and pay with M-Pesa</li>
+      <li>Friendly, professional stylists</li>
+    </ul>
+
+    <h3>Opening hours</h3>
+    <p>Monday to Saturday, 8am to 7pm</p>
+
+    <h3>Find us</h3>
+    <p>Kisii, Kenya</p>
+
+    <a class="btn" href="{% url 'book' %}">Book an appointment</a>
+  </div>
+</section>
+{% endblock %}

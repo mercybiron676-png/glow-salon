@@ -1,0 +1,24 @@
+{% extends "salon/base.html" %}
+{% block title %}Contact - Glow Salon{% endblock %}
+{% block content %}
+<section class="container narrow">
+  <h2>Contact us</h2>
+  <div class="card">
+    <h3>Visit us</h3>
+    <p>Glow Salon, Kisii, Kenya</p>
+
+    <h3>Opening hours</h3>
+    <p>Monday to Saturday, 8am to 7pm</p>
+
+    <h3>Call or message</h3>
+    <p>Phone: <strong>254745645839</strong></p>
+    <p>Email: <strong>mercy@gmail.com</strong></p>
+
+    <p>
+      <a class="btn" href="tel:+254745645839">Call us</a>
+      <a class="btn secondary" href="https://wa.me/254745645839">WhatsApp</a>
+    </p>
+    <p><a href="{% url 'book' %}">Or book online &rarr;</a></p>
+  </div>
+</section>
+{% endblock %}

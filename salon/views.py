@@ -36,3 +36,8 @@ def pay(request, pk):
             "payee_name": settings.PAYEE_NAME,
         },
     )
+def about(request):
+    return render(request, "salon/about.html")
+
+def contact(request):
+    return render(request, "salon/contact.html")
